@@ -12,10 +12,23 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const queryParam = {
-      username: searchParams.get("username"),
-    };
-    //validate with zod
+    const usernameParam = searchParams.get("username");
+
+    // Check if username parameter is provided
+    if (!usernameParam) {
+      console.error("No username provided");
+      return Response.json(
+        {
+          success: false,
+          message: "Username parameter is required",
+        },
+        { status: 400 }
+      );
+    }
+
+    const queryParam = { username: usernameParam };
+    
+    // Validate with Zod
     const result = UsernameQuerySchema.safeParse(queryParam);
     console.log(result);
     if (!result.success) {
@@ -24,7 +37,7 @@ export async function GET(request: Request) {
         {
           success: false,
           message:
-            usernameErrors?.length > 0
+            usernameErrors.length > 0
               ? usernameErrors.join(", ")
               : "Invalid query parameter",
         },
@@ -34,19 +47,22 @@ export async function GET(request: Request) {
 
     const { username } = result.data;
 
-    const existingVeryfiedUser = await UserModel.findOne({
+    // Check if the username already exists and is verified
+    const existingVerifiedUser = await UserModel.findOne({
       username,
-      isVeryfied: true,
+      isVerified: true,
     });
-    if (!existingVeryfiedUser) {
+
+    if (existingVerifiedUser) {
       return Response.json(
         {
           success: false,
           message: "Username is already taken",
         },
-        { status: 400 }
+        { status: 409 }  // Changed to 409 Conflict
       );
     }
+
     return Response.json(
       {
         success: true,
