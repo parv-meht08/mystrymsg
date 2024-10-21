@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/rules-of-hooks */
 "use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -24,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-const page = () => {
+const Page = () => {  // Updated component name
   const [username, setUsername] = useState("");
   const [usernameMessage, setUsernameMessage] = useState("");
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
@@ -34,7 +33,6 @@ const page = () => {
   const { toast } = useToast();
   const router = useRouter();
 
-  //zod implementation
   const form = useForm<z.infer<typeof SignUpSchema>>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
@@ -45,26 +43,22 @@ const page = () => {
   });
 
   useEffect(() => {
-    const checkUsernameUnique = async () => {
-      if (username) {
+    if (username) {
+      const checkUsernameUnique = async () => {
         setIsCheckingUsername(true);
         setUsernameMessage("");
         try {
-          const response = await axios.get(
-            `/api/check-username-uniqueness?username=${username}`
-          );
+          const response = await axios.get(`/api/check-username-uniqueness?username=${username}`);
           setUsernameMessage(response.data.message);
         } catch (error) {
           const axiosError = error as AxiosError<ApiResponse>;
-          setUsernameMessage(
-            axiosError.response?.data.message ?? "Error checking username"
-          );
+          setUsernameMessage(axiosError.response?.data.message ?? "Error checking username");
         } finally {
           setIsCheckingUsername(false);
         }
-      }
-    };
-    checkUsernameUnique();
+      };
+      checkUsernameUnique();
+    }
   }, [username]);
 
   const onSubmit = async (data: z.infer<typeof SignUpSchema>) => {
@@ -75,7 +69,8 @@ const page = () => {
         title: "Success",
         description: response.data.message,
       });
-      router.replace("/verify/${username}");
+      // Make sure you pass the username here
+      router.push(`/verify/${data.username}`);
       setIsSubmitting(false);
     } catch (error) {
       console.error("Error in sign up of user", error);
@@ -89,6 +84,8 @@ const page = () => {
       setIsSubmitting(false);
     }
   };
+  
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-green-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -116,10 +113,10 @@ const page = () => {
                       }}
                     />
                   </FormControl>
-                    {isCheckingUsername && <Loader2 className="animate-spin"/>}
-                    <p className={`text-sm ${usernameMessage === "Username is unique" ? 'text-green-500' : 'text-red-500'}`}>
-                        test {usernameMessage}
-                    </p>
+                  {isCheckingUsername && <Loader2 className="animate-spin" />}
+                  <p className={`text-sm ${usernameMessage === "Username is unique" ? 'text-green-500' : 'text-red-500'}`}>
+                    {usernameMessage}
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -156,7 +153,7 @@ const page = () => {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please W8
                 </>
               ) : (
-                "SignUp"
+                "Sign Up"
               )}
             </Button>
           </form>
@@ -177,4 +174,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page; // Updated export statement

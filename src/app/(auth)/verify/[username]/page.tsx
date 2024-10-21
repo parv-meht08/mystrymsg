@@ -21,8 +21,10 @@ import * as z from "zod";
 
 const VerifyAccount = () => {
   const router = useRouter();
-  const parms = useParams<{ username: string }>();
+  const params = useParams<{ username: string }>(); // Corrected here
   const { toast } = useToast();
+  
+  const username = params.username; // Store username for later use
 
   const form = useForm<z.infer<typeof verifySchema>>({
     resolver: zodResolver(verifySchema),
@@ -31,7 +33,7 @@ const VerifyAccount = () => {
   const onSubmit = async (data: z.infer<typeof verifySchema>) => {
     try {
       const response = await axios.post(`/api/verify-code`, {
-        username: parms.username,
+        username: username, // Use the retrieved username
         code: data.code,
       });
 
@@ -40,13 +42,13 @@ const VerifyAccount = () => {
         description: response.data.message,
       });
 
-      router.replace("sign-in");
+      router.replace("/sign-in");
     } catch (error) {
-      console.error("Error in sign up of user", error);
+      console.error("Error during verification", error);
       const axiosError = error as AxiosError<ApiResponse>;
       toast({
-        title: "Signup failed",
-        description: axiosError.response?.data.message,
+        title: "Verification failed",
+        description: axiosError.response?.data.message || "An error occurred",
         variant: "destructive",
       });
     }
